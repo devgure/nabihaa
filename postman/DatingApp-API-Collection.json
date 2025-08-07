@@ -1,0 +1,45 @@
+// postman/DatingApp-API-Collection.json
+{
+  "info": {
+    "name": "Dating App API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth: Verify Firebase",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idToken\": \"your-firebase-id-token\"}"
+        },
+        "url": "http://localhost:3000/auth/verify-firebase"
+      }
+    },
+    {
+      "name": "User: Nearby",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <your-jwt>" }
+        ],
+        "url": "http://localhost:3000/users/nearby"
+      }
+    },
+    {
+      "name": "Like: Send",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer <jwt>" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"receiverId\": \"user123\"}"
+        },
+        "url": "http://localhost:3000/likes"
+      }
+    }
+  ]
+}

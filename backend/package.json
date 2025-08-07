@@ -1,0 +1,22 @@
+{
+  "name": "dating-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "nest start --watch",
+    "build": "nest build",
+    "start:prod": "node dist/main"
+  },
+  "dependencies": {
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/websockets": "^10.0.0",
+    "@prisma/client": "^5.0.0",
+    "prisma": "^5.0.0",
+    "class-validator": "^0.14.0",
+    "firebase-admin": "^11.0.0",
+    "stripe": "^14.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/client-rekognition": "^3.0.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "DatingApp",
+    "slug": "dating-app",
+    "version": "1.0.0",
+    "platforms": ["android", "ios"],
+    "icon": "./assets/icon.png"
+  }
+}

@@ -1,0 +1,160 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String     @id @default(cuid())
+  firebaseUid       String     @unique
+  email             String     @unique
+  phone             String?    @unique
+  displayName         String?
+  bio               String?
+  birthDate         DateTime?
+  gender            Gender?
+  preferredGender   Gender?
+  photos            Photo[]
+  location          UserLocation? @relation(fields: [locationId], references: [id])
+  locationId        String?
+  preferences       MatchPreference?
+  matches           Match[]     @relation("UserMatches")
+  sentLikes         Like[]      @relation("LikeSender")
+  receivedLikes     Like[]      @relation("LikeReceiver")
+  chatMessages      Message[]   @relation("MessageSender")
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  isVerified        Boolean    @default(false)
+  subscription      Subscription?
+  reports           Report[]    @relation("ReportedUser")
+  blockedUsers      BlockedUser[] @relation("BlockingUser")
+  blockedBy         BlockedUser[] @relation("BlockedUser")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  OTHER
+}
+
+model UserLocation {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  latitude  Float
+  longitude Float
+  updatedAt DateTime @updatedAt
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  url       String
+  isPrimary Boolean  @default(false)
+  verified  Boolean  @default(false) // facial recognition pass
+  createdAt DateTime @default(now())
+}
+
+model MatchPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  minAge          Int      @default(18)
+  maxAge          Int      @default(99)
+  maxDistanceKm   Int      @default(50)
+  showMe         Gender?
+}
+
+model Like {
+  id           String   @id @default(cuid())
+  senderId     String
+  receiverId   String
+  sender       User     @relation("LikeSender", fields: [senderId], references: [id])
+  receiver     User     @relation("LikeReceiver", fields: [receiverId], references: [id])
+  isSuperLike  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Unique constraint to prevent duplicate likes
+  @@unique([senderId, receiverId])
+}
+
+model Match {
+  id          String    @id @default(cuid())
+  user1Id     String
+  user2Id     String
+  user1       User      @relation("UserMatches", fields: [user1Id], references: [id])
+  user2       User      @relation("UserMatches", fields: [user2Id], references: [id])
+  matchedAt   DateTime  @default(now())
+  chatRoom    ChatRoom?
+  isActive    Boolean   @default(true)
+
+  @@unique([user1Id, user2Id])
+}
+
+model ChatRoom {
+  id        String    @id @default(cuid())
+  matchId   String    @unique
+  match     Match     @relation(fields: [matchId], references: [id])
+  messages  Message[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  chatRoomId  String
+  chatRoom    ChatRoom @relation("MessageRoom", fields: [chatRoomId], references: [id])
+  senderId    String
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+  text        String?
+  imageUrl    String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  stripeId      String?  // customer ID
+  subscriptionId String? // Stripe subscription ID
+  plan          Plan     @default(BASIC)
+  currentPeriodEnd DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+enum Plan {
+  BASIC
+  PREMIUM
+  VIP
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  reportedId  String
+  reason      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  reporter    User @relation("ReportedBy", fields: [reporterId], references: [id])
+  reported    User @relation("ReportedUser", fields: [reportedId], references: [id])
+}
+
+model BlockedUser {
+  id            String @id @default(cuid())
+  blockingId    String
+  blockedId     String
+
+  blockingUser  User @relation("BlockingUser", fields: [blockingId], references: [id])
+  blockedUser   User @relation("BlockedUser", fields: [blockedId], references: [id])
+
+  @@unique([blockingId, blockedId])
+}
