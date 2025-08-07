@@ -1,0 +1,68 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://datinguser:datingpass@postgres:5432/datingdb?schema=public
+      - JWT_SECRET=your_strong_jwt_secret_here_32_chars_min
+      - STRIPE_SECRET_KEY=sk_test_...
+      - AWS_ACCESS_KEY_ID=your_key
+      - AWS_SECRET_ACCESS_KEY=your_secret
+      - S3_BUCKET_NAME=dating-app-photos-12345
+    volumes:
+      - ./backend/firebase-key.json:/app/firebase-key.json
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: datinguser
+      POSTGRES_PASSWORD: datingpass
+      POSTGRES_DB: datingdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  mobile:
+    build: ./mobile
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    volumes:
+      - ./mobile:/app
+      - ~/.expo:/root/.expo
+    command: npx expo start --tunnel
+
+  admin:
+    build: ./admin
+    ports:
+      - "3001:3000"
+    working_dir: /app
+    command: npm run dev
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - mobile
+      - admin
+
+volumes:
+  pgdata:
